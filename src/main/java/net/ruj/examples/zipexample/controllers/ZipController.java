@@ -17,16 +17,18 @@ public class ZipController {
 
     public void start(FileOutputStream destination) throws IOException, ZipException {
         String directory = askDirectory();
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream("In memory text file".getBytes())) {
 
-        File parentFolder = Paths.get(directory).toFile();
-        File[] childFiles = parentFolder.listFiles();
-        assert childFiles != null;
+            File parentFolder = Paths.get(directory).toFile();
+            File[] childFiles = parentFolder.listFiles();
+            assert childFiles != null;
 
-        ArrayList<VirtualFile> virtualFiles = new ArrayList<>();
-        addInFolderFiles(childFiles, virtualFiles);
-        addInMemoryFile(virtualFiles);
+            ArrayList<VirtualFile> virtualFiles = new ArrayList<>();
+            addInFolderFiles(childFiles, virtualFiles);
+            addInMemoryFile(virtualFiles, inputStream);
 
-        this.zipService.zip(virtualFiles, destination);
+            this.zipService.zip(virtualFiles, destination);
+        }
     }
 
     private String askDirectory() throws IOException {
@@ -46,9 +48,9 @@ public class ZipController {
             );
     }
 
-    private void addInMemoryFile(ArrayList<VirtualFile> virtualFiles) {
+    private void addInMemoryFile(ArrayList<VirtualFile> virtualFiles, ByteArrayInputStream inputStream) {
         VirtualFile inMemoryFile = new VirtualFile(
-                new ByteArrayInputStream("In memory text file".getBytes()),
+                inputStream,
                 "additionalFile"
         );
         virtualFiles.add(inMemoryFile);
